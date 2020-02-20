@@ -149,6 +149,12 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
+add_executable(MOR_Publisher src/pub.cpp)
+target_link_libraries(MOR_Publisher ${catkin_LIBRARIES})
+
+add_executable(MOR_Subscriber src/sub.cpp)
+target_link_libraries(MOR_Subscriber ${catkin_LIBRARIES})
+
 #############
 ## Install ##
 #############

@@ -1,0 +1,8 @@
+prefix=/home/jonathan/sources/myrepos/FH-ROS/ros-test/devel
+
+Name: mor_pubsubBasics
+Description: Description of mor_pubsubBasics
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

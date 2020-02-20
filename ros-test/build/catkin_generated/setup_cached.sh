@@ -7,7 +7,5 @@
 # new environment variables
 
 # modified environment variables
-export CMAKE_PREFIX_PATH="/home/jonathan/sources/myrepos/FH-ROS/ros-test/devel:$CMAKE_PREFIX_PATH"
+export PKG_CONFIG_PATH="/home/jonathan/sources/myrepos/FH-ROS/ros-test/devel/lib/pkgconfig:$PKG_CONFIG_PATH"
 export PWD="/home/jonathan/sources/myrepos/FH-ROS/ros-test/build"
-export ROSLISP_PACKAGE_DIRECTORIES="/home/jonathan/sources/myrepos/FH-ROS/ros-test/devel/share/common-lisp"
-export ROS_PACKAGE_PATH="/home/jonathan/sources/myrepos/FH-ROS/ros-test/src:$ROS_PACKAGE_PATH"
