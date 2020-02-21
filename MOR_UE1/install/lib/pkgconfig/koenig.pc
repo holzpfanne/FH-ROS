@@ -1,0 +1,8 @@
+prefix=/home/jonathan/sources/myrepos/FH-ROS/MOR_UE1/install
+
+Name: koenig
+Description: Description of koenig
+Version: 0.0.0
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib 
+Requires: message_runtime
