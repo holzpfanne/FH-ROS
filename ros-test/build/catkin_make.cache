@@ -1,2 +1,0 @@
-mor_pubsubBasics
--DCATKIN_DEVEL_PREFIX=/home/jonathan/sources/myrepos/FH-ROS/ros-test/devel -DCMAKE_INSTALL_PREFIX=/home/jonathan/sources/myrepos/FH-ROS/ros-test/install -G Unix Makefiles
