@@ -4,7 +4,8 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "../../.."
+                "../../..",
+                "/opt/ros/melodic/include/ros"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
