@@ -149,6 +149,9 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
+add_executable(DFD src/main.cpp)
+target_link_libraries(DFD ${catkin_LIBRARIES})
+
 #############
 ## Install ##
 #############
