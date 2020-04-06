@@ -1,8 +1,0 @@
-prefix=/home/jonathan/sources/myrepos/FH-ROS/MOR_UE2/devel
-
-Name: tf
-Description: Description of tf
-Version: 1.13.0
-Cflags: -I/home/jonathan/sources/myrepos/FH-ROS/MOR_UE2/devel/include -I/home/jonathan/sources/myrepos/FH-ROS/MOR_UE2/src/tf/include
-Libs: -L${prefix}/lib -ltf
-Requires: geometry_msgs message_filters message_runtime roscpp sensor_msgs std_msgs tf2_ros rosconsole
