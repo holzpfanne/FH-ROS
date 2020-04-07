@@ -1,8 +1,0 @@
-prefix=/home/jonathan/sources/myrepos/FH-ROS/MOR_UE2/devel
-
-Name: koenig
-Description: Description of koenig
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 
