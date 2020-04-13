@@ -44,22 +44,19 @@ int main(int argc, char **argv)
 {
     double alpha, beta, distance; //d
     go = false;
-    
+    //init ROS
     ros::init(argc, argv, "DFD");
     ros::NodeHandle n;
     ros::Subscriber sub_odometry = n.subscribe<nav_msgs::OdometryConstPtr>("odom", 1, sub_callback);
     ros::Subscriber sub_soll = n.subscribe<geometry_msgs::Pose2D>("soll", 1, get_soll);
     movement_pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
     pub_pose2d = n.advertise<geometry_msgs::Pose2D>("turtlebot_pose2d", 1);
-    geometry_msgs::Twist move;
+    geometry_msgs::Twist move_cmd;
 
     ros::Rate calc_rate(10); //calc rate
     const double PI = 3.14159265358979323846;
 
-    //soll_pose.x = -1;
-    //soll_pose.y = -1;
-    //soll_pose.theta = PI/2;
-
+    //wait for soll pose
     while(!go){ros::spinOnce();};
 
     /*
@@ -77,13 +74,9 @@ int main(int argc, char **argv)
     // 0
     */
 
-    sleep(5);
-    
+    //calc angle and distance
     alpha = atan2(soll_pose.y, soll_pose.x);
     distance = sqrt(pow(soll_pose.x,2)+pow(soll_pose.y,2));
-
-    //ROS_INFO("aplpha: %f",alpha);
-    //ROS_INFO("distance: %f",distance);
 
     //first turn
     ROS_INFO("first turn");
@@ -91,18 +84,18 @@ int main(int argc, char **argv)
                         ||(current_pose.theta < alpha && alpha > 0)
                         ||(current_pose.theta == 0 && alpha != 0))
     {
-        move.linear.x = 0;
-        if(alpha < 0) {move.angular.z = -0.2;}
-        else {move.angular.z = 0.2;}
-        movement_pub.publish(move);
+        move_cmd.linear.x = 0;
+        if(alpha < 0) {move_cmd.angular.z = -0.2;}
+        else {move_cmd.angular.z = 0.2;}
+        movement_pub.publish(move_cmd);
         ros::spinOnce();
         calc_rate.sleep();
     }
 
     //stop
-    move.linear.x = 0;
-    move.angular.z = 0;
-    movement_pub.publish(move);
+    move_cmd.linear.x = 0;
+    move_cmd.angular.z = 0;
+    movement_pub.publish(move_cmd);
     ros::spinOnce();
     calc_rate.sleep();
 
@@ -110,17 +103,17 @@ int main(int argc, char **argv)
     ROS_INFO("forward");
     while (ros::ok() && (sqrt(pow(current_pose.x,2)+pow(current_pose.y,2)) < distance))
     {
-        move.linear.x = 0.2; //speed value m/s
-        move.angular.z = 0;
-        movement_pub.publish(move);
+        move_cmd.linear.x = 0.2;
+        move_cmd.angular.z = 0;
+        movement_pub.publish(move_cmd);
         ros::spinOnce();
         calc_rate.sleep();
     }
 
     //stop
-    move.linear.x = 0;
-    move.angular.z = 0;
-    movement_pub.publish(move);
+    move_cmd.linear.x = 0;
+    move_cmd.angular.z = 0;
+    movement_pub.publish(move_cmd);
     ros::spinOnce();
     calc_rate.sleep();
 
@@ -131,18 +124,18 @@ int main(int argc, char **argv)
     while (ros::ok() && (current_pose.theta < soll_pose.theta && beta > 0) 
                         ||(current_pose.theta > soll_pose.theta && beta < 0))
     {
-        move.linear.x = 0;
-        if(beta > 0) {move.angular.z = 0.3;}
-        else {move.angular.z = -0.3;}
-        movement_pub.publish(move);
+        move_cmd.linear.x = 0;
+        if(beta > 0) {move_cmd.angular.z = 0.3;}
+        else {move_cmd.angular.z = -0.3;}
+        movement_pub.publish(move_cmd);
         ros::spinOnce();
         calc_rate.sleep();
     }
 
     //stop
-    move.linear.x = 0;
-    move.angular.z = 0;
-    movement_pub.publish(move);
+    move_cmd.linear.x = 0;
+    move_cmd.angular.z = 0;
+    movement_pub.publish(move_cmd);
     ros::spinOnce();
     ROS_INFO("finished");
 
