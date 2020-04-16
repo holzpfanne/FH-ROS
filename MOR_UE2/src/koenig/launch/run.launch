@@ -9,6 +9,9 @@
     <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf" args="-urdf -model turtlebot3_burger -x 0.0 -y 0.0 -z 0 -Y 0 -param robot_description" />
   <include file="$(find turtlebot3_bringup)/launch/turtlebot3_remote.launch"/>
   <node name="DFD" pkg="koenig" type="DFD" output="screen" >
-    <!--remap from="setter" to="hello"/-->
+    <remap from="DFD/koenig/odom" to="/odom"/>
+    <remap from="DFD/koenig/cmd_vel" to="/cmd_vel"/>
+    <remap from="DFD/koenig/turtlebot_pose2d" to="/turtlebot_pose2d"/>
+    <remap from="DFD/koenig/soll" to="/soll"/>
   </node>
 </launch>

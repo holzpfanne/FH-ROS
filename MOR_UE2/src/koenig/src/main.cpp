@@ -46,7 +46,7 @@ int main(int argc, char **argv)
     go = false;
     //init ROS
     ros::init(argc, argv, "DFD");
-    ros::NodeHandle n;
+    ros::NodeHandle n("~koenig");
     ros::Subscriber sub_odometry = n.subscribe<nav_msgs::OdometryConstPtr>("odom", 1, sub_callback);
     ros::Subscriber sub_soll = n.subscribe<geometry_msgs::Pose2D>("soll", 1, get_soll);
     movement_pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
