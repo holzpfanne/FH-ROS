@@ -41,6 +41,6 @@
     <include file="$(find koenig)/launch/move_base.launch" />
     
     <node name="finder" pkg="koenig" type="finder" output="screen" >
-        <remap from="/finder/koenig/goal" to="/move_base/goal"/>
+        <remap from="/finder/koenig/goal" to="/move_base_simple/goal"/>
     </node>
 </launch>

@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   move_base_msgs
+  actionlib
   #turtlebot3_navigation
 )
 
@@ -108,7 +109,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
  INCLUDE_DIRS include
  LIBRARIES koenig
- CATKIN_DEPENDS nav_msgs sensor_msgs std_msgs move_base_msgs
+ CATKIN_DEPENDS nav_msgs sensor_msgs std_msgs move_base_msgs actionlib
 #  DEPENDS system_lib
 )
 
