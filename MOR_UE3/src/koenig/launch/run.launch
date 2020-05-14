@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<launch>
+    <node name="map_server" pkg="map_server" >
+        <param name="mapname" type="string" value="myworld.yaml" />
+    </node>
+    <node name="finder" pkg="koenig" type="finder" output="screen" >
+    <remap from="finder/koenig/OccupancyGrid" to="/OccupancyGrid"/>
+  </node>
+</launch>
