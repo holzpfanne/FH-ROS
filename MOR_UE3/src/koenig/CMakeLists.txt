@@ -155,6 +155,9 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
+add_executable(goal_pub src/goal_pub.cpp)
+target_link_libraries(goal_pub ${catkin_LIBRARIES})
+
 add_executable(finder src/main.cpp)
 target_link_libraries(finder ${catkin_LIBRARIES})
 
