@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include <iostream>
+#include <cmath>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/server/simple_action_server.h>
 #include <nav_msgs/OccupancyGrid.h>
@@ -38,4 +39,5 @@ class planner{
         void plan_path();
         void expand_walls();
         void print_map();
+        void calculate_distances();
 };
