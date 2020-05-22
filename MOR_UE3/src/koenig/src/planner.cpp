@@ -23,7 +23,32 @@ void planner::set_map(nav_msgs::OccupancyGrid set_map){
 }
 
 void planner::expand_walls(){
-    //in order
+    //in order to privent the robot from driving into the wall the wall will be made bigger //Dilatation
+    int matrix[3][3] = {{1,1,1}, {1,2,1}, {1,1,1}}; 
+    int height = this->map.info.height;
+    int width = this->map.info.width;
+
+    vector<vector<bool>> new_grid_map(height, vector<bool>(width, 0));
+    
+    for(int i = 0,k; i < height; i++){
+        for(int j = 0; j < width; j++, k++){
+            int sum = 0;
+            vector<pair<int, int>> round = {{-1,0}, {1,0}, {0, 1}, {0,-1}, {-1, 1}, {-1,-1}, {1,1},{1,-1}};
+
+            for(int k = 0; k < 8;k++){
+                if(i+round[k].first < 0 || j+round[k].second < 0 || i+round[k].first >= height || j+round[k].second >= width) {continue;}
+                sum += this->grid_map[i+round[k].first][j+round[k].second].is_obstical * matrix[1+round[k].first][1+round[k].second];
+            }
+            if(sum > 0) {new_grid_map[i][j] = true;}
+        }
+    }
+
+    //copy new grid into map
+    for(int i = 0,k; i < height; i++){
+        for(int j = 0; j < width; j++, k++){
+            this->grid_map[i][j].is_obstical = new_grid_map[i][j];
+        }
+    }
 }
 
 void planner::print_map(){
@@ -57,6 +82,9 @@ void planner::server_callback(const boost::shared_ptr<const move_base_msgs::Move
     cout << "y: " << this->destination.second << endl;
     */
     
+    this->print_map();
+    this->expand_walls();
+    cout << endl;
     this->print_map();
 }
 
