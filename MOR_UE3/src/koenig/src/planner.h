@@ -14,7 +14,7 @@ using namespace std;
 typedef class pixel{
     public:
         bool is_obstical;
-        pair<int, int> parent; //parent -1 -1: not visented
+        pair<int, int> parents, location; //parent -1 -1: not visented
         double goal_distance;
         double walked_distance, heuristik;
         //neighbours are all eight around
@@ -40,4 +40,8 @@ class planner{
         void expand_walls();
         void print_map();
         void calculate_distances();
+        bool goal_reached();
+        bool goal_valid();
+        bool field_valid(pair<int ,int>field);
+        void reorder_list(vector<pixel> &list);
 };

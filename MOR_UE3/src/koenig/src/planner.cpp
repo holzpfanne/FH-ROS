@@ -66,7 +66,92 @@ void planner::server_callback(const boost::shared_ptr<const move_base_msgs::Move
 
 void planner::plan_path(){
     this->calculate_distances();
+    vector<pair<int, int>> neighbors = {{-1,0}, {1,0}, {0, 1}, {0,-1}, {-1, 1}, {-1,-1}, {1,1},{1,-1}};
+
+    double diagonal = sqrt(2);
+
+    if(!this->goal_valid()){
+        ROS_INFO("goal not valid");
+        return;
+    }
+    if(this->goal_reached()){
+        ROS_INFO("goal equals start point");
+        return;
+    }
+
+    vector<pixel>checked, list;
+    pixel tmp = this->grid_map[this->start.first][this->start.second];
+    tmp.parents = this->start;
+    tmp.location = this->start;
+    tmp.walked_distance = 0;
+    list.push_back(tmp);
+
+    pair<int, int> now = this->start;
+ 
+    while(1){
+        //list.push_back(tmp);
+        for(int i = 0;i < 8;i++){
+            tmp = this->grid_map[list[0].location.first+neighbors[i].first][list[0].location.second+neighbors[i].second];
+            if(!field_valid(tmp.location)) {continue;}
+
+            if(abs(neighbors[i].first) + abs(neighbors[i].second) == 2) {tmp.walked_distance = list[0].walked_distance + diagonal;}
+            else {tmp.walked_distance = list[0].walked_distance + 1;}
+            tmp.heuristik = tmp.goal_distance + tmp.walked_distance;
+
+            list.push_back(tmp);
+        }
+
+        checked.push_back(list[0]);
+        list.erase(list.begin());
+        this->reorder_list(list);
+
+        //check if goal found
+    }
     
+}
+
+void planner::reorder_list(vector<pixel> &list){
+    unsigned int search_index = 0;
+    double biggest = 0;
+    vector<pixel>::iterator biggest_index;
+
+    for(pixel ele : list){
+        for(vector<pixel>::iterator i = list.begin() + search_index; i < list.end(); i++){
+            if(list[i].heuristik > biggest) {
+                biggest = list[i].heuristik;
+                biggest_index = i;
+            }
+        }
+        swap(list[search_index],list[biggest_index]);
+        search_index++;
+    }
+}
+
+bool planner::goal_reached(){
+    if(destination == start) {return true;}
+    return false;
+}
+
+bool planner::field_valid(pair<int ,int>field){
+    //goal on map and not in wall
+    if(field.first < 0
+    || field.second < 0
+    || field.first >= this->map.info.height
+    || field.second >= this->map.info.width) {return false;}
+
+    if(this->grid_map[field.first][field.first].is_obstical) {return false;}
+    return true;
+}
+
+bool planner::goal_valid(){
+    //goal on map and not in wall
+    if(this->destination.first < 0
+    || this->destination.second < 0
+    || this->destination.first >= this->map.info.height
+    || this->destination.second >= this->map.info.width) {return false;}
+
+    if(this->grid_map[this->destination.first][this->destination.first].is_obstical) {return false;}
+    return true;
 }
 
 void planner::expand_walls(){
@@ -80,11 +165,11 @@ void planner::expand_walls(){
     for(int i = 0,k; i < height; i++){
         for(int j = 0; j < width; j++, k++){
             int sum = 0;
-            vector<pair<int, int>> round = {{-1,0}, {1,0}, {0, 1}, {0,-1}, {-1, 1}, {-1,-1}, {1,1},{1,-1}};
+            vector<pair<int, int>> neighbors = {{-1,0}, {1,0}, {0, 1}, {0,-1}, {-1, 1}, {-1,-1}, {1,1},{1,-1}};
 
             for(int k = 0; k < 8;k++){
-                if(i+round[k].first < 0 || j+round[k].second < 0 || i+round[k].first >= height || j+round[k].second >= width) {continue;}
-                sum += this->grid_map[i+round[k].first][j+round[k].second].is_obstical * matrix[1+round[k].first][1+round[k].second];
+                if(i+neighbors[k].first < 0 || j+neighbors[k].second < 0 || i+neighbors[k].first >= height || j+neighbors[k].second >= width) {continue;}
+                sum += this->grid_map[i+neighbors[k].first][j+neighbors[k].second].is_obstical * matrix[1+neighbors[k].first][1+neighbors[k].second];
             }
             if(sum > 0) {new_grid_map[i][j] = true;}
         }
