@@ -19,9 +19,7 @@ typedef class pixel{
         double walked_distance, heuristik;
         //neighbours are all eight around
 
-        pixel(){
-            this->is_obstical = false;
-        }
+        pixel():
 }pixel;
 
 class planner{
@@ -44,4 +42,5 @@ class planner{
         bool goal_valid();
         bool field_valid(pair<int ,int>field);
         void reorder_list(vector<pixel> &list);
+        bool goal_found(vector<pixel> &list);
 };

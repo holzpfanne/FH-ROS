@@ -1,5 +1,11 @@
 #include "planner.h"
 
+pixel::pixel(){
+    this->is_obstical = false;
+    this->parents.first = -1;
+    this->parents.second = -1;
+}
+
 planner::planner(nav_msgs::Path *pub_path){
     this->path = pub_path;
 
@@ -110,16 +116,27 @@ void planner::plan_path(){
     
 }
 
-void planner::reorder_list(vector<pixel> &list){
-    unsigned int search_index = 0;
-    double biggest = 0;
-    vector<pixel>::iterator biggest_index;
+bool planner::goal_found(vector<pixel> &list){
+    if(this->grid_map[this->destination.first][this->destination.second].parents.first != -1 
+    && this->grid_map[this->destination.first][this->destination.second].parents.second != -1) {
+        for(pixel ele : list){
+            if(ele.walked_distance < list[0].walked_distance ) {return false;}
+            return true;
+        }
+    }
+    
+    return false;
+}
 
-    for(pixel ele : list){
-        for(vector<pixel>::iterator i = list.begin() + search_index; i < list.end(); i++){
-            if(list[i].heuristik > biggest) {
-                biggest = list[i].heuristik;
-                biggest_index = i;
+void planner::reorder_list(vector<pixel> &list){
+    unsigned int search_index = 0, biggest_index;
+    double biggest = 0;
+
+    for(int i = 0; i < list.size() - 1; i++){
+        for(int j = 0 + search_index; j < list.size(); j++){
+            if(list[(int)i].heuristik > biggest) {
+                biggest = list[j].heuristik;
+                biggest_index = j;
             }
         }
         swap(list[search_index],list[biggest_index]);
