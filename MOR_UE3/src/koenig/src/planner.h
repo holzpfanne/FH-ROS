@@ -10,17 +10,32 @@ typedef actionlib::SimpleActionServer<move_base_msgs::MoveBaseAction> Server;
 
 using namespace std;
 
+typedef class pixel{
+    public:
+        bool is_obstical;
+        pair<int, int> parent; //parent -1 -1: not visented
+        double goal_distance;
+        double walked_distance, heuristik;
+        //neighbours are all eight around
+
+        pixel(){
+            this->is_obstical = false;
+        }
+}pixel;
+
 class planner{
     public:
-        planner();
+        planner(nav_msgs::Path *pub_path);
         void server_callback(const boost::shared_ptr<const move_base_msgs::MoveBaseGoal> received_goal, Server* as);
         void set_map(nav_msgs::OccupancyGrid set_map);
 
     private:
         nav_msgs::OccupancyGrid map;
         pair<int, int> start, destination;
+        nav_msgs::Path *path;
+        vector<vector<pixel>> grid_map;
 
-
-        void plan_path(const move_base_msgs::MoveBaseGoal);
-
+        void plan_path();
+        void expand_walls();
+        void print_map();
 };
