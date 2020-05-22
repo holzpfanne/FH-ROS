@@ -127,7 +127,7 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/my_cool_project.cpp
+#   src/${koenig}/src/planner.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -158,8 +158,11 @@ include_directories(
 add_executable(goal_pub src/goal_pub.cpp)
 target_link_libraries(goal_pub ${catkin_LIBRARIES})
 
-add_executable(finder src/main.cpp)
-target_link_libraries(finder ${catkin_LIBRARIES})
+# build planner lib
+add_library(planner src/planner.cpp)
+
+add_executable(finder src/main.cpp src/planner.cpp)
+target_link_libraries(finder ${catkin_LIBRARIES} planner)
 
 #############
 ## Install ##
