@@ -11,7 +11,7 @@ typedef actionlib::SimpleActionServer<move_base_msgs::MoveBaseAction> Server;
 
 using namespace std;
 
-typedef class pixel{
+class pixel{
     public:
         bool is_obstical;
         pair<int, int> parents, location; //parent -1 -1: not visented
@@ -19,8 +19,8 @@ typedef class pixel{
         double walked_distance, heuristik;
         //neighbours are all eight around
 
-        pixel():
-}pixel;
+        pixel();
+};
 
 class planner{
     public:
@@ -38,9 +38,10 @@ class planner{
         void expand_walls();
         void print_map();
         void calculate_distances();
-        bool goal_reached();
+        bool goal_prereached();
         bool goal_valid();
         bool field_valid(pair<int ,int>field);
         void reorder_list(vector<pixel> &list);
         bool goal_found(vector<pixel> &list);
+        void draw_path();
 };

@@ -80,7 +80,7 @@ void planner::plan_path(){
         ROS_INFO("goal not valid");
         return;
     }
-    if(this->goal_reached()){
+    if(this->goal_prereached()){
         ROS_INFO("goal equals start point");
         return;
     }
@@ -112,8 +112,18 @@ void planner::plan_path(){
         this->reorder_list(list);
 
         //check if goal found
+        if(this->goal_found(list)) {break;}
     }
+
+    //follow destination to start
+    this->draw_path();
     
+}
+
+void planner::draw_path(){
+
+
+
 }
 
 bool planner::goal_found(vector<pixel> &list){
@@ -144,7 +154,7 @@ void planner::reorder_list(vector<pixel> &list){
     }
 }
 
-bool planner::goal_reached(){
+bool planner::goal_prereached(){
     if(destination == start) {return true;}
     return false;
 }
