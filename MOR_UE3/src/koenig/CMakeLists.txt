@@ -159,10 +159,10 @@ add_executable(goal_pub src/goal_pub.cpp)
 target_link_libraries(goal_pub ${catkin_LIBRARIES})
 
 # build planner lib
-add_library(planner src/planner.cpp)
+add_library(planner_lib src/planner.cpp)
 
 add_executable(finder src/main.cpp src/planner.cpp)
-target_link_libraries(finder ${catkin_LIBRARIES} planner)
+target_link_libraries(finder ${catkin_LIBRARIES} planner_lib)
 
 #############
 ## Install ##
