@@ -1,5 +1,7 @@
 #include <ros/ros.h>
 #include <iostream>
+#include <stack>
+#include <vector>
 #include <cmath>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/server/simple_action_server.h>

@@ -121,20 +121,38 @@ void planner::plan_path(){
 }
 
 void planner::draw_path(){
+    stack<pixel> points;
+    pair<int, int> tracker = this->destination;
+    while(this->grid_map[tracker.first][tracker.second].location.first != this->grid_map[tracker.first][tracker.second].parents.first
+       && this->grid_map[tracker.first][tracker.second].location.second != this->grid_map[tracker.first][tracker.second].parents.second)
+    {
+        points.push(this->grid_map[tracker.first][tracker.second]);
+        tracker = this->grid_map[tracker.first][tracker.second].parents;
+    }
 
+    geometry_msgs::PoseStamped tmp;
+    pixel on_view;
 
+    do{
+        on_view = points.top();
+        points.pop();
 
+        tmp.pose.position.x = on_view.location.first / this->map.info.resolution;
+        tmp.pose.position.y = on_view.location.second / this->map.info.resolution;
+        tmp.pose.position.z = 0;
+
+        this->path->poses.push_back(tmp);
+    }while (!points.empty());
 }
 
 bool planner::goal_found(vector<pixel> &list){
     if(this->grid_map[this->destination.first][this->destination.second].parents.first != -1 
     && this->grid_map[this->destination.first][this->destination.second].parents.second != -1) {
         for(pixel ele : list){
-            if(ele.walked_distance < list[0].walked_distance ) {return false;}
-            return true;
+            if(ele.walked_distance < this->grid_map[this->destination.first][this->destination.second].walked_distance) {return false;}
         }
+        return true;
     }
-    
     return false;
 }
 
