@@ -24,6 +24,9 @@ void planner::set_map(nav_msgs::OccupancyGrid set_map){
     for(int i = 0,k = 0; i < height; i++){
         for(int j = 0; j < width; j++, k++){
             if(this->map.data[k] > 0) {grid_map[i][j].is_obstical = true;}
+            grid_map[i][j].location.first = i;
+            grid_map[i][j].location.second = j;
+
         }
     }
     this->expand_walls();
@@ -49,7 +52,7 @@ void planner::server_callback(const boost::shared_ptr<const move_base_msgs::Move
     this->destination.first = goal->target_pose.pose.position.x / this->map.info.resolution;
     this->destination.second = goal->target_pose.pose.position.y / this->map.info.resolution;
 
-    /*
+    
     //print goal
     cout << "print start\n";
     cout << "x: " << this->start.first << endl;
@@ -58,7 +61,7 @@ void planner::server_callback(const boost::shared_ptr<const move_base_msgs::Move
     cout << "print goal\n";
     cout << "x: " << this->destination.first << endl;
     cout << "y: " << this->destination.second << endl;
-    */
+    
     
     /*
     this->print_map();
@@ -71,6 +74,7 @@ void planner::server_callback(const boost::shared_ptr<const move_base_msgs::Move
 }
 
 void planner::plan_path(){
+    ROS_INFO("dis");
     this->calculate_distances();
     vector<pair<int, int>> neighbors = {{-1,0}, {1,0}, {0, 1}, {0,-1}, {-1, 1}, {-1,-1}, {1,1},{1,-1}};
 
@@ -84,6 +88,7 @@ void planner::plan_path(){
         ROS_INFO("goal equals start point");
         return;
     }
+    ROS_INFO("goal valid");
 
     vector<pixel>checked, list;
     pixel tmp = this->grid_map[this->start.first][this->start.second];
@@ -95,40 +100,46 @@ void planner::plan_path(){
     pair<int, int> now = this->start;
  
     while(1){
-        //list.push_back(tmp);
         for(int i = 0;i < 8;i++){
-            tmp = this->grid_map[list[0].location.first+neighbors[i].first][list[0].location.second+neighbors[i].second];
-            if(!field_valid(tmp.location)) {continue;}
+            #ERROR //optimise here
+            if(!field_valid(list[0].location ,neighbors[i])) {continue;}
 
-            if(abs(neighbors[i].first) + abs(neighbors[i].second) == 2) {tmp.walked_distance = list[0].walked_distance + diagonal;}
-            else {tmp.walked_distance = list[0].walked_distance + 1;}
-            tmp.heuristik = tmp.goal_distance + tmp.walked_distance;
+            if(abs(neighbors[i].first) + abs(neighbors[i].second) == 2 /*if diagonal*/) {this->grid_map[list[0].location.first+neighbors[i].first][list[0].location.second+neighbors[i].second].walked_distance = list[0].walked_distance + diagonal;}
+            else {this->grid_map[list[0].location.first+neighbors[i].first][list[0].location.second+neighbors[i].second].walked_distance = list[0].walked_distance + 1;}
+            this->grid_map[list[0].location.first+neighbors[i].first][list[0].location.second+neighbors[i].second].heuristik = this->grid_map[list[0].location.first+neighbors[i].first][list[0].location.second+neighbors[i].second].goal_distance + this->grid_map[list[0].location.first+neighbors[i].first][list[0].location.second+neighbors[i].second].walked_distance;
 
-            list.push_back(tmp);
+            //this->grid_map[list[0].location.first+neighbors[i].first][list[0].location.second+neighbors[i].second] = tmp;
+
+            //set parent
+            this->grid_map[list[0].location.first+neighbors[i].first][list[0].location.second+neighbors[i].second].parents.first = list[0].location.first;
+            this->grid_map[list[0].location.first+neighbors[i].first][list[0].location.second+neighbors[i].second].parents.second = list[0].location.second;
+
+            list.push_back(this->grid_map[list[0].location.first+neighbors[i].first][list[0].location.second+neighbors[i].second]);
         }
 
-        checked.push_back(list[0]);
         list.erase(list.begin());
         this->reorder_list(list);
 
         //check if goal found
         if(this->goal_found(list)) {break;}
     }
+    ROS_INFO("path found");
 
     //follow destination to start
     this->draw_path();
-    
 }
 
 void planner::draw_path(){
     stack<pixel> points;
     pair<int, int> tracker = this->destination;
-    while(this->grid_map[tracker.first][tracker.second].location.first != this->grid_map[tracker.first][tracker.second].parents.first
-       && this->grid_map[tracker.first][tracker.second].location.second != this->grid_map[tracker.first][tracker.second].parents.second)
+    while(this->grid_map[tracker.first][tracker.second].location.first != this->start.first
+       || this->grid_map[tracker.first][tracker.second].location.second != this->start.second)
     {
         points.push(this->grid_map[tracker.first][tracker.second]);
         tracker = this->grid_map[tracker.first][tracker.second].parents;
     }
+
+    ROS_INFO_STREAM("stacked: " << points.size());
 
     geometry_msgs::PoseStamped tmp;
     pixel on_view;
@@ -137,8 +148,12 @@ void planner::draw_path(){
         on_view = points.top();
         points.pop();
 
-        tmp.pose.position.x = on_view.location.first / this->map.info.resolution;
-        tmp.pose.position.y = on_view.location.second / this->map.info.resolution;
+        tmp.pose.position.x = on_view.location.second * this->map.info.resolution;
+        tmp.pose.position.y = on_view.location.first * this->map.info.resolution;
+        tmp.header.frame_id = "map";
+        tmp.header.seq = 0;
+        //ROS_INFO_STREAM("X: " << tmp.pose.position.x);
+        //ROS_INFO_STREAM("Y: " << tmp.pose.position.y);
         tmp.pose.position.z = 0;
 
         this->path->poses.push_back(tmp);
@@ -157,18 +172,25 @@ bool planner::goal_found(vector<pixel> &list){
 }
 
 void planner::reorder_list(vector<pixel> &list){
-    unsigned int search_index = 0, biggest_index;
+    unsigned int biggest_index = 0;
     double biggest = 0;
 
+    //ROS_INFO_STREAM("reordering: " << list.size());
+    if(list.size() <= 1) {return;}
+
     for(int i = 0; i < list.size() - 1; i++){
-        for(int j = 0 + search_index; j < list.size(); j++){
+        //ROS_INFO_STREAM("list size: " << list.size());
+        for(int j = 0 + i; j < list.size(); j++){
+            //ROS_ERROR_STREAM("heuristik: " << list[(int)i].heuristik);
             if(list[(int)i].heuristik > biggest) {
                 biggest = list[j].heuristik;
                 biggest_index = j;
             }
         }
-        swap(list[search_index],list[biggest_index]);
-        search_index++;
+        //ROS_INFO_STREAM("biggest_index: " << biggest_index);
+
+        list.insert(list.begin(), list[biggest_index]);
+        list.erase(list.begin() + biggest_index + 1);
     }
 }
 
@@ -177,14 +199,18 @@ bool planner::goal_prereached(){
     return false;
 }
 
-bool planner::field_valid(pair<int ,int>field){
+bool planner::field_valid(pair<int ,int>field, pair<int ,int>neighbor){
     //goal on map and not in wall
-    if(field.first < 0
-    || field.second < 0
-    || field.first >= this->map.info.height
-    || field.second >= this->map.info.width) {return false;}
+    if(field.first + neighbor.first < 0
+    || field.second + neighbor.second < 0
+    || field.first + neighbor.first >= this->map.info.height
+    || field.second + neighbor.second >= this->map.info.width) {return false;}
 
-    if(this->grid_map[field.first][field.first].is_obstical) {return false;}
+    if(this->grid_map[field.first + neighbor.first][field.second + neighbor.second].is_obstical) {return false;}
+
+    if(this->grid_map[field.first + neighbor.first][field.second + neighbor.second].parents.first != -1 
+    && this->grid_map[field.first + neighbor.first][field.second + neighbor.second].parents.second != -1) {return false;}
+
     return true;
 }
 

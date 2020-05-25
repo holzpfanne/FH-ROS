@@ -42,7 +42,7 @@ class planner{
         void calculate_distances();
         bool goal_prereached();
         bool goal_valid();
-        bool field_valid(pair<int ,int>field);
+        bool field_valid(pair<int ,int>field, pair<int ,int>neighbor);
         void reorder_list(vector<pixel> &list);
         bool goal_found(vector<pixel> &list);
         void draw_path();

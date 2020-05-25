@@ -6,6 +6,7 @@ int main(int argc, char **argv) {
     ros::NodeHandle n("~koenig");
     nav_msgs::GetMap srv_map;
     nav_msgs::Path custom_path;
+    custom_path.header.frame_id = "map";
     planner custom(&custom_path);
     
     //init Server
@@ -39,7 +40,24 @@ int main(int argc, char **argv) {
     // start server
     ser.start();
 
-    path.publish(custom_path);
+    //wait until path was calculaded
+    //while (custom_path.poses.empty());
+    ros::Rate loop_rate(1);
+    while(ros::ok() && custom_path.poses.empty()){
+        ros::spinOnce();
+    }
+
+    for(int i = 0; i < custom_path.poses.size(); i++){
+        ROS_INFO_STREAM("X: " << custom_path.poses[i].pose.position.x); 
+        ROS_INFO_STREAM("Y: " << custom_path.poses[i].pose.position.y); 
+    }
+
+    ROS_INFO("publishing path");
+    
+    while(ros::ok()){
+        path.publish(custom_path);
+        ros::spinOnce();
+    }
     ros::spin();
     return 0;
 }
