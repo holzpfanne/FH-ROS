@@ -145,6 +145,8 @@ void planner::draw_path(){
     geometry_msgs::PoseStamped tmp;
     pixel on_view;
 
+    this->path->poses.clear();
+
     do{
         on_view = points.top();
         points.pop();
