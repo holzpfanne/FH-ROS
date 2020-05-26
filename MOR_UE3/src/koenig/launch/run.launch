@@ -2,59 +2,20 @@
 <launch>
     <!-- launch params -->
     <arg name="use_finder" default="false" />
-    
-    <!-- Create gazebo world -->
-    <include file="$(find gazebo_ros)launch/empty_world.launch" >
-        <arg name="gui" value="false" />
-        <arg name="use_sim_time" value="true" />
-        <arg name="paused" value="false" />
-    </include>
-    
+
+    <!-- load Robot -->
     <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_burger_for_autorace.urdf.xacro" />
-    <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf" args="-urdf -model turtlebot3_burger -x 0.5 -y 0.5 -z 0 -Y 0 -param robot_description" />
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
 
-	<include file="$(find turtlebot3_bringup)/launch/turtlebot3_remote.launch"/>
+    <!-- transform KS to start position -->
+    <node pkg="tf" type="static_transform_publisher" name="tf" args="2.6 0.2 0 1.57 0 0 /map /base_footprint 10"/>
 
-    <node pkg="rviz" type="rviz" name="rviz_koenig" args="-d $(find koenig)/rviz/config.rviz" />
-
+    <!-- start map server -->
     <node pkg="map_server" name="map_server" type="map_server" args="$(find koenig)/maps/myworld.yaml"/>
-    <node pkg="amcl" type="amcl" name="amcl">
-        <param name="min_particles"             value="500"/>
-        <param name="max_particles"             value="3000"/>
-        <param name="kld_err"                   value="0.02"/>
-        <param name="update_min_d"              value="0.20"/>
-        <param name="update_min_a"              value="0.20"/>
-        <param name="resample_interval"         value="1"/>
-        <param name="transform_tolerance"       value="0.5"/>
-        <param name="recovery_alpha_slow"       value="0.00"/>
-        <param name="recovery_alpha_fast"       value="0.00"/>
-        <param name="initial_pose_x"            value="2.5"/>
-        <param name="initial_pose_y"            value="0.25"/>
-        <param name="initial_pose_a"            value="1.57"/>
-        <param name="gui_publish_rate"          value="50.0"/>
-
-        <param name="odom_model_type"           value="diff"/>
-        <param name="odom_alpha1"               value="0.1"/>
-        <param name="odom_alpha2"               value="0.1"/>
-        <param name="odom_alpha3"               value="0.1"/>
-        <param name="odom_alpha4"               value="0.1"/>
-        <param name="odom_frame_id"             value="odom"/>
-        <param name="base_frame_id"             value="base_footprint"/>
-    </node>
-    <group if="$(arg use_finder)">
-        <node name="finder" pkg="koenig" type="finder" output="screen" >
-            <!--remap from="/finder/koenig/goal" to="/move_base_simple/goal"/-->
-        </node>
-        <node name="goal_pub" pkg="koenig" type="goal_pub" output="screen" >
-            <remap from="move_base" to="finder/koenig/jonny_plan"/>
-        </node>
-    </group>
-
-    <group unless="$(arg use_finder)">
-        <include file="$(find koenig)/launch/move_base.launch" />
-        <node name="goal_pub" pkg="koenig" type="goal_pub" output="screen" >
-            <!--remap from="/finder/koenig/goal" to="/move_base_simple/goal"/-->
-        </node>
-    </group>
+    
+    <!-- start planner -->
+    <include if="$(arg use_finder)" file="$(find koenig)/launch/custom.launch"/>
+    <include unless="$(arg use_finder)" file="$(find koenig)/launch/native.launch" />
 
 </launch>

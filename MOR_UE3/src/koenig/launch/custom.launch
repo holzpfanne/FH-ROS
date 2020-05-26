@@ -1,0 +1,11 @@
+<launch>
+    <node pkg="rviz" type="rviz" name="rviz_koenig" args="-d $(find koenig)/rviz/custom.rviz" />
+    <node name="finder" pkg="koenig" type="finder" output="screen" >
+        <remap from="finder/koenig/jonny_plan" to="move_base"/>
+        <!--remap from="/finder/koenig/goal" to="/move_base_simple/goal"/-->
+    </node>
+    <node name="goal_pub" pkg="koenig" type="goal_pub" output="screen" >
+        <!--remap from="move_base" to="finder/koenig/jonny_plan"/-->
+    </node>
+
+</launch>

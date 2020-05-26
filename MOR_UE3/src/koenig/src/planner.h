@@ -8,6 +8,7 @@
 #include <nav_msgs/OccupancyGrid.h>
 #include <nav_msgs/Path.h>
 #include <nav_msgs/GetMap.h>
+#include <tf2_msgs/TFMessage.h>
 
 typedef actionlib::SimpleActionServer<move_base_msgs::MoveBaseAction> Server;
 
@@ -36,12 +37,13 @@ class planner{
         nav_msgs::Path *path;
         vector<vector<pixel>> grid_map;
 
-        void plan_path();
+        bool plan_path();
         void expand_walls();
         void print_map();
         void calculate_distances();
         bool goal_prereached();
         bool goal_valid();
+        bool start_valid();
         bool field_valid(pair<int ,int>field, pair<int ,int>neighbor);
         void reorder_list(vector<pixel> &list);
         bool goal_found(vector<pixel> &list);

@@ -31,9 +31,9 @@ int main(int argc, char **argv) {
     ac.waitForResult();
 
     if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-        ROS_INFO("Goal reached, exiting...");
+        ROS_INFO("Path planned!, exiting...");
     else
-        ROS_INFO("Failed to reach goal, exiting...");
+        ROS_INFO("Failed to plan path, exiting...");
 
     return 0;
 }

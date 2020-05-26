@@ -47,11 +47,6 @@ int main(int argc, char **argv) {
         ros::spinOnce();
     }
 
-    for(int i = 0; i < custom_path.poses.size(); i++){
-        ROS_INFO_STREAM("X: " << custom_path.poses[i].pose.position.x); 
-        ROS_INFO_STREAM("Y: " << custom_path.poses[i].pose.position.y); 
-    }
-
     ROS_INFO("publishing path");
     
     while(ros::ok()){

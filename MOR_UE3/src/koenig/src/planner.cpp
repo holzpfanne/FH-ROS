@@ -8,9 +8,6 @@ pixel::pixel(){
 
 planner::planner(nav_msgs::Path *pub_path){
     this->path = pub_path;
-
-    this->start.first = 2;
-    this->start.second = 12;
 }
 
 void planner::set_map(nav_msgs::OccupancyGrid set_map){
@@ -51,43 +48,46 @@ void planner::server_callback(const boost::shared_ptr<const move_base_msgs::Move
     this->destination.first = goal->target_pose.pose.position.x / this->map.info.resolution;
     this->destination.second = goal->target_pose.pose.position.y / this->map.info.resolution;
 
+    boost::shared_ptr<tf2_msgs::TFMessage const> msg = ros::topic::waitForMessage<tf2_msgs::TFMessage> ("/tf");
+    const tf2_msgs::TFMessage *start_pose = msg.get();
+
+    this->start.second =  start_pose->transforms[0].transform.translation.x / this->map.info.resolution;
+    this->start.first = start_pose->transforms[0].transform.translation.y / this->map.info.resolution;
     
     //print goal
-    cout << "print start\n";
-    cout << "x: " << this->start.first << endl;
-    cout << "y: " << this->start.second << endl;
+    cout << "Start\n";
+    cout << "x: " << this->start.first * this->map.info.resolution << "m" << endl;
+    cout << "y: " << this->start.second * this->map.info.resolution << "m" << endl;
 
-    cout << "print goal\n";
-    cout << "x: " << this->destination.first << endl;
-    cout << "y: " << this->destination.second << endl;
+    cout << "Goal\n";
+    cout << "x: " << this->destination.first * this->map.info.resolution << "m" << endl;
+    cout << "y: " << this->destination.second * this->map.info.resolution << "m" << endl;
     
+
+    if(this->plan_path()) {as->setSucceeded();}
+    else {as->setAborted();}
     
-    /*
-    this->print_map();
-    this->expand_walls();
-    cout << endl;
-    this->print_map();
-    */
-    this->plan_path();
-    as->setSucceeded();
 }
 
-void planner::plan_path(){
-    ROS_INFO("dis");
+bool planner::plan_path(){
     this->calculate_distances();
     vector<pair<int, int>> neighbors = {{-1,0}, {1,0}, {0, 1}, {0,-1}, {-1, 1}, {-1,-1}, {1,1},{1,-1}};
 
     double diagonal = sqrt(2);
 
+    if(!this->start_valid()){
+        ROS_INFO("start not valid");
+        return false;
+    }
     if(!this->goal_valid()){
         ROS_INFO("goal not valid");
-        return;
+        return false;
     }
     if(this->goal_prereached()){
         ROS_INFO("goal equals start point");
-        return;
+        return false;
     }
-    ROS_INFO("goal valid");
+    ROS_INFO("start and goal valid");
 
     vector<pixel>checked, list;
     pixel tmp = this->grid_map[this->start.first][this->start.second];
@@ -108,9 +108,6 @@ void planner::plan_path(){
             else {tmp.walked_distance = list[0].walked_distance + 1;}
             tmp.heuristik = tmp.goal_distance + tmp.walked_distance;
 
-            //ROS_INFO_STREAM("tmp wlaked: " << tmp.walked_distance << "tmp heu: " << tmp.heuristik);
-            //getchar();
-
             //if old version shorter -> continue
             if(this->grid_map[list[0].location.first+neighbors[i].first][list[0].location.second+neighbors[i].second].walked_distance <= tmp.walked_distance 
             && this->grid_map[list[0].location.first+neighbors[i].first][list[0].location.second+neighbors[i].second].parents.first != -1
@@ -122,24 +119,17 @@ void planner::plan_path(){
             this->grid_map[list[0].location.first+neighbors[i].first][list[0].location.second+neighbors[i].second] = tmp;
             list.push_back(tmp);
         }
-        //for(pixel ele : list){
-        //    cout << "heu: " << ele.heuristik << endl;
-        //}
-        //getchar();
-        //ROS_INFO_STREAM("size: " << list.size());
-        //ROS_INFO_STREAM("id: " << list[0].location.first << "," << list[0].location.second);
         list.erase(list.begin());
         this->reorder_list(list);
 
         //check if goal found
         if(this->goal_found(list)) {break;}
-        //ROS_INFO_STREAM("goal_distance: " << list[0].goal_distance);
-        //ROS_INFO_STREAM("id: " << list[0].location.first << "," << list[0].location.second);
     }
     ROS_INFO("path found");
 
     //follow destination to start
     this->draw_path();
+    return true;
 }
 
 void planner::draw_path(){
@@ -152,8 +142,6 @@ void planner::draw_path(){
         tracker = this->grid_map[tracker.first][tracker.second].parents;
     }
 
-    ROS_INFO_STREAM("stacked: " << points.size());
-
     geometry_msgs::PoseStamped tmp;
     pixel on_view;
 
@@ -165,8 +153,6 @@ void planner::draw_path(){
         tmp.pose.position.y = on_view.location.first * this->map.info.resolution;
         tmp.header.frame_id = "map";
         tmp.header.seq = 0;
-        //ROS_INFO_STREAM("X: " << tmp.pose.position.x);
-        //ROS_INFO_STREAM("Y: " << tmp.pose.position.y);
         tmp.pose.position.z = 0;
 
         this->path->poses.push_back(tmp);
@@ -176,8 +162,6 @@ void planner::draw_path(){
 bool planner::goal_found(vector<pixel> &list){
     if(this->grid_map[this->destination.first][this->destination.second].parents.first != -1 
     && this->grid_map[this->destination.first][this->destination.second].parents.second != -1) {
-        //return true;
-        if(list.size() == 0) {return true;}
         for(pixel ele : list){
             if(ele.walked_distance < this->grid_map[this->destination.first][this->destination.second].walked_distance) {return false;}
         }
@@ -190,7 +174,6 @@ void planner::reorder_list(vector<pixel> &list){
     unsigned int biggest_index = 0;
     double biggest = 0;
 
-    ROS_INFO_STREAM("reordering: " << list.size());
     if(list.size() <= 1 || list.empty() ) {return;}
 
     for(int i = 0; i < list.size(); i++){
@@ -205,7 +188,6 @@ void planner::reorder_list(vector<pixel> &list){
         list.insert(list.begin(), list[biggest_index]);
         list.erase(list.begin() + biggest_index + 1);
     }
-    ROS_INFO_STREAM("ordered: " << list.size());
 }
 
 bool planner::goal_prereached(){
@@ -233,6 +215,17 @@ bool planner::goal_valid(){
     || this->destination.second >= this->map.info.width) {return false;}
 
     if(this->grid_map[this->destination.first][this->destination.second].is_obstical) {return false;}
+    return true;
+}
+
+bool planner::start_valid(){
+    //goal on map and not in wall
+    if(this->start.first < 0
+    || this->start.second < 0
+    || this->start.first >= this->map.info.height
+    || this->start.second >= this->map.info.width) {return false;}
+
+    if(this->grid_map[this->start.first][this->start.second].is_obstical) {return false;}
     return true;
 }
 
