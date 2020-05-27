@@ -31,7 +31,7 @@ void planner::set_map(nav_msgs::OccupancyGrid set_map){
 void planner::publish_path(){
     //waiting for Rviz to start with sleep
     ros::Duration(2.0).sleep();
-    
+
     this->path_pup->publish(this->path);
     ROS_INFO("Path published");
 }
@@ -99,7 +99,6 @@ void planner::rviz_server_callback(const boost::shared_ptr<const geometry_msgs::
     cout << "x: " << goal->pose.position.x << "m" << endl;
     cout << "y: " << goal->pose.position.y << "m" << endl;
     
-
     this->plan_path();
 }
 
