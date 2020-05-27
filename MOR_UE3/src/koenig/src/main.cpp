@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
     //init rviz goal subscriber
     ros::Subscriber rviz_goal = n.subscribe<geometry_msgs::PoseStamped>("/rviz_goal", 1, boost::bind(&planner::rviz_server_callback, &custom, _1));
     
-    //init Server
+    //init goal Server
     Server ser(n, "jonny_plan",boost::bind(&planner::server_callback, &custom, _1, &ser), false);
     ROS_INFO("goal server init");
     
@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
         return 0;
     }
     
-    // start server
+    // start goal server
     ser.start();
 
     //let ROS do it's magic 

@@ -31,10 +31,9 @@ void planner::set_map(nav_msgs::OccupancyGrid set_map){
 void planner::publish_path(){
     //waiting for Rviz to start with sleep
     ros::Duration(2.0).sleep();
-    //while(ros::ok()){
+    
     this->path_pup->publish(this->path);
     ROS_INFO("Path published");
-    //}
 }
 
 void planner::print_map(){
