@@ -6,8 +6,8 @@ pixel::pixel(){
     this->parents.second = -1;
 }
 
-planner::planner(nav_msgs::Path *pub_path){
-    this->path = pub_path;
+planner::planner(ros::Publisher *prt_path_pub){
+    this->path_pup = prt_path_pub;
 }
 
 void planner::set_map(nav_msgs::OccupancyGrid set_map){
@@ -26,6 +26,15 @@ void planner::set_map(nav_msgs::OccupancyGrid set_map){
         }
     }
     this->expand_walls();
+}
+
+void planner::publish_path(){
+    //waiting for Rviz to start with sleep
+    ros::Duration(2.0).sleep();
+    //while(ros::ok()){
+    this->path_pup->publish(this->path);
+    ROS_INFO("Path published");
+    //}
 }
 
 void planner::print_map(){
@@ -56,17 +65,43 @@ void planner::server_callback(const boost::shared_ptr<const move_base_msgs::Move
     
     //print goal
     cout << "Start\n";
-    cout << "x: " << this->start.first * this->map.info.resolution << "m" << endl;
-    cout << "y: " << this->start.second * this->map.info.resolution << "m" << endl;
+    cout << "y: " << start_pose->transforms[0].transform.translation.y << "m" << endl;
+    cout << "x: " << start_pose->transforms[0].transform.translation.x << "m" << endl;
 
     cout << "Goal\n";
-    cout << "x: " << this->destination.first * this->map.info.resolution << "m" << endl;
-    cout << "y: " << this->destination.second * this->map.info.resolution << "m" << endl;
+    cout << "x: " << goal->target_pose.pose.position.x << "m" << endl;
+    cout << "y: " << goal->target_pose.pose.position.y << "m" << endl;
     
 
     if(this->plan_path()) {as->setSucceeded();}
     else {as->setAborted();}
     
+}
+
+void planner::rviz_server_callback(const boost::shared_ptr<const geometry_msgs::PoseStamped> received_goal){
+
+    cout << "rviz callback\n";
+    const geometry_msgs::PoseStamped* goal = received_goal.get();
+    this->destination.first = goal->pose.position.y / this->map.info.resolution;
+    this->destination.second = goal->pose.position.x / this->map.info.resolution;
+
+    boost::shared_ptr<tf2_msgs::TFMessage const> msg = ros::topic::waitForMessage<tf2_msgs::TFMessage> ("/tf");
+    const tf2_msgs::TFMessage *start_pose = msg.get();
+
+    this->start.second =  start_pose->transforms[0].transform.translation.x / this->map.info.resolution;
+    this->start.first = start_pose->transforms[0].transform.translation.y / this->map.info.resolution;
+    
+    //print goal
+    cout << "Start\n";
+    cout << "x: " << start_pose->transforms[0].transform.translation.x << "m" << endl;
+    cout << "y: " << start_pose->transforms[0].transform.translation.y << "m" << endl;
+
+    cout << "Goal\n";
+    cout << "x: " << goal->pose.position.x << "m" << endl;
+    cout << "y: " << goal->pose.position.y << "m" << endl;
+    
+
+    this->plan_path();
 }
 
 bool planner::plan_path(){
@@ -129,6 +164,7 @@ bool planner::plan_path(){
 
     //follow destination to start
     this->draw_path();
+    this->publish_path();
     return true;
 }
 
@@ -145,7 +181,8 @@ void planner::draw_path(){
     geometry_msgs::PoseStamped tmp;
     pixel on_view;
 
-    this->path->poses.clear();
+    this->path.poses.clear();
+    this->path.header.frame_id = "map";
 
     do{
         on_view = points.top();
@@ -157,7 +194,7 @@ void planner::draw_path(){
         tmp.header.seq = 0;
         tmp.pose.position.z = 0;
 
-        this->path->poses.push_back(tmp);
+        this->path.poses.push_back(tmp);
     }while (!points.empty());
 }
 

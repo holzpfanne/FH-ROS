@@ -8,6 +8,8 @@ typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseCl
 int main(int argc, char **argv) {
 
     ros::init(argc, argv, "goal_pub");
+    ros::NodeHandle n;
+
 
     //Init MoveBaseClient
     MoveBaseClient ac("move_base", true);
@@ -21,8 +23,8 @@ int main(int argc, char **argv) {
     move_base_msgs::MoveBaseGoal goal;
     goal.target_pose.header.frame_id = "map";
     goal.target_pose.header.stamp = ros::Time::now();
-    goal.target_pose.pose.position.x = 7;
-    goal.target_pose.pose.position.y = 7;
+    n.param<double>("goal_pub/target_x", goal.target_pose.pose.position.x, 7);
+    n.param<double>("goal_pub/target_y", goal.target_pose.pose.position.y, 7);
     goal.target_pose.pose.orientation.w = 1;
 
     ROS_INFO("Sending goal");

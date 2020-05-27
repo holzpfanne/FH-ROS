@@ -9,6 +9,7 @@
 #include <nav_msgs/Path.h>
 #include <nav_msgs/GetMap.h>
 #include <tf2_msgs/TFMessage.h>
+#include <geometry_msgs/PoseStamped.h>
 
 typedef actionlib::SimpleActionServer<move_base_msgs::MoveBaseAction> Server;
 
@@ -27,14 +28,16 @@ class pixel{
 
 class planner{
     public:
-        planner(nav_msgs::Path *pub_path);
+        planner(ros::Publisher *prt_path_pub);
         void server_callback(const boost::shared_ptr<const move_base_msgs::MoveBaseGoal> received_goal, Server* as);
+        void rviz_server_callback(const boost::shared_ptr<const geometry_msgs::PoseStamped> received_goal);
         void set_map(nav_msgs::OccupancyGrid set_map);
 
     private:
         nav_msgs::OccupancyGrid map;
         pair<int, int> start, destination;
-        nav_msgs::Path *path;
+        nav_msgs::Path path;
+        ros::Publisher *path_pup;
         vector<vector<pixel>> grid_map;
 
         bool plan_path();
@@ -48,4 +51,5 @@ class planner{
         void reorder_list(vector<pixel> &list);
         bool goal_found(vector<pixel> &list);
         void draw_path();
+        void publish_path();
 };

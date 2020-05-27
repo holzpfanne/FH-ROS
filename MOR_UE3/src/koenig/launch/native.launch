@@ -3,7 +3,10 @@
   <node pkg="rviz" type="rviz" name="rviz_koenig" args="-d $(find koenig)/rviz/native.rviz" />
 
   <!-- goal publisher -->
-  <node name="goal_pub" pkg="koenig" type="goal_pub" output="screen" />
+  <node name="goal_pub" pkg="koenig" type="goal_pub" output="screen" >
+    <param name="target_x" type="double" value="7.0" />
+    <param name="target_y" type="double" value="7.3" />
+  </node>
 
   <!-- Arguments -->
   <arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, waffle, waffle_pi]"/>
