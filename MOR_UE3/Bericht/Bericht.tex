@@ -3,6 +3,9 @@
 \usepackage{graphicx}
 \usepackage{cleveref}
 \usepackage{listings}
+\usepackage{booktabs}
+
+\usepackage[vmargin=2.2cm]{geometry}
 
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
@@ -53,6 +56,8 @@ Das Ziel wird über eine eigens geschrieberne Node \verb|goal_pub| über einen A
 Die Node \verb|move_base| holt sich über die Nodes \verb|joint_state_publisher| und \verb|robot_state_publisher| die Daten zum turtlebot burger.
 über die Node tf wird dann der Roboter in eine Startposition verschoben.
 
+
+
 \verb|move_base| published dann einen Pfad, siehe Abbildung \ref{path_nativ}.
 
 \begin{figure}[!htbp]
@@ -82,6 +87,9 @@ class pixel{
 };
 \end{lstlisting}
 
+Bevor begonnen wir zu suchen wir für jeden pixel die \verb|location| und die \verb|goal_distance| gesetzt. 
+Daraufhin wird der A Start Algorythmus für die Start und Ziel position durchgeführt und der Pfad gepublished, siehe \ref{path_custom}.
+
 \begin{figure}[!htbp]
     \centering
     \includegraphics[width=0.5\linewidth]{PICs/custom_rviz_plan.png}
@@ -89,6 +97,43 @@ class pixel{
 \end{figure}
 
 \section{Vegleich der beiden Lösungen}
+
+\textbf{Completeness}\newline
+
+\begin{table}[!htbp]
+    \begin{tabular}{p{7cm}|p{7cm}}
+        DWAPlannerROS & custom A Star \\ \bottomrule
+        Lösung vorhanedn & Lösung vorhanedn
+    \end{tabular}
+\end{table}
+
+\textbf{Optimality}\newline
+
+\begin{table}[!htbp]
+    \begin{tabular}{p{7cm}|p{7cm}}
+        DWAPlannerROS & custom A Star \\ \bottomrule
+     berücksichtigt das der Roboter nicht unendlich schnell sich drehen kann & Sollte den kürzesten Pfad finden doch nur mit 45 pfaden möglich
+    \end{tabular}
+\end{table}
+
+
+\textbf{Time complexity}\newline
+
+\begin{table}[!htbp]
+    \begin{tabular}{p{7cm}|p{7cm}}
+        DWAPlannerROS & custom A Star \\ \bottomrule
+    langsamer & schneller als Dikstra weil weniger Knoten durchsucht werden müssen aufgrund der Heristik
+    \end{tabular}
+\end{table}
+
+\textbf{Space complexity}\newline
+
+\begin{table}[!htbp]
+    \begin{tabular}{p{7cm}|p{7cm}}
+        DWAPlannerROS & custom A Star \\ \bottomrule
+        test & some
+    \end{tabular}
+\end{table}
 
 
 \end{document}
