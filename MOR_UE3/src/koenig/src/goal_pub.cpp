@@ -27,6 +27,12 @@ int main(int argc, char **argv) {
     n.param<double>("goal_pub/target_y", goal.target_pose.pose.position.y, 7);
     goal.target_pose.pose.orientation.w = 1;
 
+    //wait for Rviz to have started by waiting if service is available: if rviz is not up and path is published, the path is lost
+    if(!ros::service::waitForService("/rviz_koenig/reload_shaders", ros::Duration(10.0))) {
+        ROS_INFO("rviz failed to start");
+        return 0;
+    }
+
     ROS_INFO("Sending goal");
     ac.sendGoal(goal);
 
