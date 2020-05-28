@@ -52,4 +52,5 @@ class planner{
         bool goal_found(vector<pixel> &list);
         void draw_path();
         void publish_path();
+        void clear_map();
 };

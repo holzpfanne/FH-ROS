@@ -99,10 +99,12 @@ void planner::rviz_server_callback(const boost::shared_ptr<const geometry_msgs::
     cout << "x: " << goal->pose.position.x << "m" << endl;
     cout << "y: " << goal->pose.position.y << "m" << endl;
     
+
     this->plan_path();
 }
 
 bool planner::plan_path(){
+    this->clear_map();
     this->calculate_distances();
     vector<pair<int, int>> neighbors = {{-1,0}, {1,0}, {0, 1}, {0,-1}, {-1, 1}, {-1,-1}, {1,1},{1,-1}};
 
@@ -208,22 +210,15 @@ bool planner::goal_found(vector<pixel> &list){
 }
 
 void planner::reorder_list(vector<pixel> &list){
-    unsigned int biggest_index = 0;
-    double biggest = 0;
+    unsigned int smallest_index = 0;
+    double smallest = INFINITY;
 
-    if(list.size() <= 1 || list.empty() ) {return;}
-
+    //put node with lowest heuristik to start
     for(int i = 0; i < list.size(); i++){
-        for(int j = 0 + i; j < list.size(); j++){
-            if(list[j].heuristik > biggest) {
-                biggest = list[j].heuristik;
-                biggest_index = j;
-            }
+        if(list[i].heuristik < smallest){
+            smallest = list[i].heuristik;
+            smallest_index = i;
         }
-        biggest = 0;
-
-        list.insert(list.begin(), list[biggest_index]);
-        list.erase(list.begin() + biggest_index + 1);
     }
 }
 
@@ -276,7 +271,7 @@ void planner::expand_walls(){
     
     for(int i = 0,k; i < height; i++){
         for(int j = 0; j < width; j++, k++){
-            int sum = 0;
+         grid_map[i][j].location.second = j;   int sum = 0;
             vector<pair<int, int>> neighbors = {{-1,0}, {1,0}, {0, 1}, {0,-1}, {-1, 1}, {-1,-1}, {1,1},{1,-1}};
 
             for(int k = 0; k < 8;k++){
@@ -302,6 +297,20 @@ void planner::calculate_distances(){
     for(int i = 0,k; i < height; i++){
         for(int j = 0; j < width; j++, k++){
             this->grid_map[i][j].goal_distance = sqrt(pow(this->destination.first-i, 2) + pow(this->destination.second-j, 2));
+        }
+    }
+}
+
+void planner::clear_map(){
+    int height = this->map.info.height;
+    int width = this->map.info.width;
+
+    for(int i = 0,k = 0; i < height; i++){
+        for(int j = 0; j < width; j++, k++){
+            grid_map[i][j].location.first = i;
+            grid_map[i][j].location.second = j;
+            grid_map[i][j].parents.first = -1;
+            grid_map[i][j].parents.second = -1;
         }
     }
 }
