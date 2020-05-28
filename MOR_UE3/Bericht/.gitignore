@@ -1,0 +1,4 @@
+Doku
+*.pdf
+Bericht*
+!*.tex
