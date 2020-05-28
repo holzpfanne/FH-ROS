@@ -200,7 +200,7 @@ bool planner::goal_found(vector<pixel> &list){
     if(this->grid_map[this->destination.first][this->destination.second].parents.first != -1 
     && this->grid_map[this->destination.first][this->destination.second].parents.second != -1) {
         for(pixel ele : list){
-            if(ele.walked_distance < this->grid_map[this->destination.first][this->destination.second].walked_distance) {return false;}
+            if(ele.heuristik < this->grid_map[this->destination.first][this->destination.second].walked_distance) {return false;}
         }
         return true;
     }
