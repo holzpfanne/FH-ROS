@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <launch>
     <!-- launch params -->
-    <arg name="use_finder" default="false" />
+    <arg name="method" default="native" />
 
     <!-- load Robot -->
     <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_burger_for_autorace.urdf.xacro" />
@@ -15,7 +15,6 @@
     <node pkg="map_server" name="map_server" type="map_server" args="$(find koenig)/maps/myworld.yaml"/>
     
     <!-- start planner -->
-    <include if="$(arg use_finder)" file="$(find koenig)/launch/custom.launch"/>
-    <include unless="$(arg use_finder)" file="$(find koenig)/launch/native.launch" />
+    <include file="$(find koenig)/launch/$(arg method).launch"/>
 
 </launch>
