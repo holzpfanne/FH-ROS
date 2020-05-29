@@ -15,7 +15,7 @@
 \usepackage{harvard}
 \usepackage{bibgerm}
 
-\title{Pfad Plannung A* vs ROS nativ}
+\title{Pfad Planung A* vs ROS nativ}
 \date{2020 Juni}
 \author{Jonathan König}
 
@@ -40,25 +40,24 @@
     \caption{Maze}\label{map}
 \end{figure}
 
-Es sollte eine Pfad durch das Labyrinnt, siehe Abbildung \ref{map}, geplannt werden.
-gestarted sollte am unteren Eingang und der Ausgang sollte der linkere obere sein.
+Problemstellung der Aufgabe ist die Pfadplanung. Diese sollte auf zwei verschiedene Arten gelöst werden. Einerseits durch die in ROS native Pfadplanung, andererseits durch einen selbst implementierten Algorithmus.
+Gegeben ist eine Karte (siehe Abbildung \ref{map}), in der vom linken unteren Eingang zum rechten oberen Ausgang navigiert werden soll.
 
-Es sollten zwei Lösungen implementiert werden:
+Es wurden zwei Lösungen implementiert:
 \begin{enumerate}
-    \item mithilfe eines von ROS bereits vorhanden Pfad planner einen Pfad erstellen lassen
-    \item Selber einen Pfad plannungs Algorythmus schreiben 
+    \item Pfadplanung durch den ROS nativen NavfnROS Planer
+    \item Pfadplanung durch Implementierung des A* Algorithmus 
 \end{enumerate}
 
-\section{ROS DWAPlannerROS}
+\section{ROS NavfnROS }
 \label{DWAPlannerROS}
 
-Das Ziel wird über eine eigens geschrieberne Node \verb|goal_pub| über einen Action Client an die \verb|move_base| Node übergeben.
-Die Node \verb|move_base| holt sich über die Nodes \verb|joint_state_publisher| und \verb|robot_state_publisher| die Daten zum turtlebot burger.
-über die Node tf wird dann der Roboter in eine Startposition verschoben.
+Das Ziel wird via einer eigens geschriebenen Publisher Node \verb|goal_pub| in x- und y-Koordinaten über einen Action Client an die \verb|move_base| Node übergeben.
+Die Node \verb|move_base| holt sich über die Nodes \verb|joint_state_publisher| und \verb|robot_state_publisher| die Daten zum turtlebot burger. Die Node \verb|tf| bestimmt in welcher Startposition sich der Roboter und somit der Ausgangspunkt der Pfadplanung befinden.
 
+Der DWAPlannerROS verwendet den sogenannten Dijkstra Algorithmus, um den kürzest und schnellst möglichen Pfad zu errechnen. Hierbei wird jede mögliche Position als eigener Knoten betrachtet. Der Start-Knoten stellt die Anfangsposition, und der End-Knoten die gewünschte Endposition dar. Um nun den kürzesten Weg auszurechnen, wird anhand von Kosten, die durch \verb|costmaps| ermittelt werden, abgewägt welcher Knoten als nächstes angefahren werden soll. Dies wird solange getan bis der gewünschte End-Knoten erreich ist. 
 
-
-\verb|move_base| published dann einen Pfad, siehe Abbildung \ref{path_nativ}.
+Sobald der DWAPlannerROS den kürzesten Pfad ermittelt hat, wird dieser an die Node \verb|move_base| übergeben, welche den Pfad folglich published (siehe Abbildung \ref{path_nativ}).
 
 \begin{figure}[!htbp]
     \centering
@@ -68,12 +67,15 @@ Die Node \verb|move_base| holt sich über die Nodes \verb|joint_state_publisher|
 
 \section{Custom Path Planner}
 
-Um selber einen Pfad plannen zu können wurde die Node \verb|finder| geschrieben.
-Um die Node \verb|goal_pub| weiter verwenden zu können ist in den Node \verb|finder| ein Action Server intergriert um die Node \verb|goal_pub| weiter verwenden zu können.
+Die selbst konzipierte Lösung zur Pfadfindung wurde realisiert, indem die Node \verb|finder| geschrieben wurde, in welcher der A* Algorithmus implementiert ist.
 
-Implementiert wurde der A Star Algorythmus.\newline
+Der A* Algorithmus operiert ähnlich wie Dijkstra, jedoch erweitert er diesen um eine Schätzfunktion, die sogenannte Heuristik. Hierbei werden die Kosten des bisher zurückgelegten Weges mit einem Schätzwert der Distanz zum Ziel-Knoten addiert, was dann die geschätzten Gesamtkosten ergibt. 
 
-Dafür wurde eine Klasse \texttt{pixel} erstellt welche Attribute für jedes Raster Teil der Karte beinhaltet.
+Optimierungspotential gibt es diesem Fall bei der gechätzten Distanz zum Ziel durch den Satz von Pythagoras, welche Wände ignoriert. Weiters kann die Pfadplanung weiter durch die Bestimmung der Höhe der Kosten verbessert werden.
+
+Um die Node \verb|goal_pub| weiter verwenden zu können ist in der Node \verb|finder| ein Action Server intergriert, um die Node \verb|goal_pub| weiter verwenden zu können.
+
+Hierfür war es nötig eine Klasse \texttt{pixel} zu erstellen, welche Attribute für jedes Raster Teil der Karte beinhaltet.
 
 \begin{lstlisting}
 class pixel{
@@ -87,8 +89,8 @@ class pixel{
 };
 \end{lstlisting}
 
-Bevor begonnen wir zu suchen wir für jeden pixel die \verb|location| und die \verb|goal_distance| gesetzt. 
-Daraufhin wird der A Start Algorythmus für die Start und Ziel position durchgeführt und der Pfad gepublished, siehe \ref{path_custom}.
+Bevor begonnen wird zu suchen wird für jedes Pixel die \verb|location| und die \verb|goal_distance| gesetzt. 
+Daraufhin wird der A* Algorithmus für die Start und Ziel Position durchgeführt und der Pfad gepublished, siehe \ref{path_custom}.
 
 \begin{figure}[!htbp]
     \centering
@@ -96,7 +98,7 @@ Daraufhin wird der A Start Algorythmus für die Start und Ziel position durchgef
     \caption{Custom Pfad}\label{path_custom}
 \end{figure}
 
-\section{Vegleich der beiden Lösungen}
+\section{Vergleich der beiden Lösungen}
 
 \textbf{Completeness}\newline
 
