@@ -49,7 +49,7 @@ Es wurden zwei Lösungen implementiert:
     \item Pfadplanung durch Implementierung des A* Algorithmus 
 \end{enumerate}
 
-\section{ROS NavfnROS }
+\section{DWAPlannerROS }
 \label{DWAPlannerROS}
 
 Das Ziel wird via einer eigens geschriebenen Publisher Node \verb|goal_pub| in x- und y-Koordinaten über einen Action Client an die \verb|move_base| Node übergeben.
@@ -73,9 +73,7 @@ Der A* Algorithmus operiert ähnlich wie Dijkstra, jedoch erweitert er diesen um
 
 Optimierungspotential gibt es diesem Fall bei der gechätzten Distanz zum Ziel durch den Satz von Pythagoras, welche Wände ignoriert. Weiters kann die Pfadplanung weiter durch die Bestimmung der Höhe der Kosten verbessert werden.
 
-Um die Node \verb|goal_pub| weiter verwenden zu können ist in der Node \verb|finder| ein Action Server intergriert, um die Node \verb|goal_pub| weiter verwenden zu können.
-
-Hierfür war es nötig eine Klasse \texttt{pixel} zu erstellen, welche Attribute für jedes Raster Teil der Karte beinhaltet.
+Um die Node \verb|goal_pub| weiter verwenden zu können ist in der Node \verb|finder| ein Action Server intergriert, um die Node \verb|goal_pub| weiter verwenden zu können. Hierfür war es nötig eine Klasse \texttt{pixel} zu erstellen, welche Attribute für jedes Raster Teil der Karte beinhaltet.
 
 \begin{lstlisting}
 class pixel{
@@ -102,6 +100,8 @@ Daraufhin wird der A* Algorithmus für die Start und Ziel Position durchgeführt
 
 \textbf{Completeness}\newline
 
+Beide Algorithmen finden in diesem Szenario eine Lösung, die sie an das angegebene Ziel führt. 
+
 \begin{table}[!htbp]
     \begin{tabular}{p{7cm}|p{7cm}}
         DWAPlannerROS & custom A Star \\ \bottomrule
@@ -110,6 +110,8 @@ Daraufhin wird der A* Algorithmus für die Start und Ziel Position durchgeführt
 \end{table}
 
 \textbf{Optimality}\newline
+
+A* ist findet generell den optimaleren Pfad, aufgrund der angewandten Heuristik. Unterschiedliche Pfade können mit Veränderung der Bewertung von Kosten gefunden werden. Somit hat man mehr Optimierungspotential als beim Dijkstra Algorithmus.
 
 \begin{table}[!htbp]
     \begin{tabular}{p{7cm}|p{7cm}}
@@ -121,6 +123,9 @@ Daraufhin wird der A* Algorithmus für die Start und Ziel Position durchgeführt
 
 \textbf{Time complexity}\newline
 
+Die Zeitintensivität der beiden Algorithmen an diesem Beispiel zu vergleichen ist schwierig da der native DWAPlannerROS Pfadplaner diverse Optimierungsmöglichkeiten hat, welche in dem selbst konzipierten A* fehlen.
+Generell kann man jedoch behaupten, dass A* schneller ist, da wesentlich weniger Knoten bearbeitet werden.
+
 \begin{table}[!htbp]
     \begin{tabular}{p{7cm}|p{7cm}}
         DWAPlannerROS & custom A Star \\ \bottomrule
@@ -130,6 +135,8 @@ Daraufhin wird der A* Algorithmus für die Start und Ziel Position durchgeführt
 
 \textbf{Space complexity}\newline
 
+Dijkstra ist A* überlegen, wenn es mehr als ein Ziel gibt, da er die Distanzen vom Startpunkt zu einem wesentlich größeren Teil des Graphen ausrechnet, während A* stets zu einem vordefinierten Ziel führt.
+
 \begin{table}[!htbp]
     \begin{tabular}{p{7cm}|p{7cm}}
         DWAPlannerROS & custom A Star \\ \bottomrule
@@ -137,5 +144,6 @@ Daraufhin wird der A* Algorithmus für die Start und Ziel Position durchgeführt
     \end{tabular}
 \end{table}
 
+https://www.slant.co/versus/11584/11585/~dijkstra-s-algorithm_vs_a-algorithm
 
 \end{document}
